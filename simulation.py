@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 class State:
 
@@ -35,6 +36,10 @@ class State:
         self.velocities += self.forces * self.timestep / 2 / self.masses
     
     def run(self):
+        '''
+        The following is the only (one) Python loop used in this program.
+        The heavy lifting is done by NumPy operations.
+        '''
         for step in range(self.nsteps):
             self.step()
             self.trajectory[step]         = self.positions
@@ -86,7 +91,9 @@ positions = np.array([
     [0.0793723207,-0.4956764341,0.5098517173], #atom3
 ])
 state = State(positions)
+start  = time.time()
 state.run()
+print(f"Duration: {time.time()-start}")
 fig, ax = plt.subplots()
 ax.plot(range(10000), state.kinetic_energies, label='kinetic')
 ax.plot(range(10000), state.potential_energies, label='potential')
