@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-import numba
-@numba.njit#@numba.jit('float64[:,:,:](float64[:,:])', nopython=True)
+
+
 def interatomic_per_dimension_distances(coordinates):
     rows,columns = coordinates.shape
-    stacked_rows = coordinates.reshape(rows, 1, columns)
+    stacked_rows = np.expand_dims(a = coordinates, axis = 1)
     return stacked_rows - coordinates
-@numba.jit('float64[:,:](float64[:,:],float64,float64)', nopython=True)
+
 def gradient_return(r_t, epsilon, sigma_t):
     z = sigma_t/r_t
     u = z*z*z
@@ -17,20 +17,20 @@ def potential_return(r_t,epsilon,sigma_t):
         z = sigma_t/r_t
         u = z*z*z
         return -4*epsilon*u*(1-u)
-@numba.jit('float64[:,:](float64[:,:],float64[:,:,:])', nopython=True)
+
 def distances_to_forces(gradients_between_atoms, interatom_distances_per_dimension_per_atom):
     natoms, natoms  = gradients_between_atoms.shape
-    stacked_columns = gradients_between_atoms.reshape(natoms, natoms, 1)
+    stacked_columns = np.expand_dims(a=gradients_between_atoms, axis=2)
     force_per_dimension_per_atom = stacked_columns * interatom_distances_per_dimension_per_atom
-    force_per_dimension_per_atom[np.isnan(force_per_dimension_per_atom)] = 0
+    #force_per_dimension_per_atom[np.isnan(force_per_dimension_per_atom)] = 0
     return np.sum(force_per_dimension_per_atom,axis=0)
-@numba.jit('UniTuple(float64[:,:],2)(float64[:,:])', nopython=True)
+
 def get_interatomic_forces(coordinates):
     per_dimension_distances = interatomic_per_dimension_distances(coordinates = coordinates)
     euclidean_distances     = np.sum(per_dimension_distances**2, axis=2)
-    euclidean_distances[euclidean_distances==0] = np.nan
+    #euclidean_distances[euclidean_distances==0] = np.nan
     gradients_between_atoms = gradient_return(euclidean_distances, 1, 1)
-    gradients_between_atoms[np.isnan(gradients_between_atoms)] = 0
+    gradients_between_atoms[gradients_between_atoms==np.inf] = 0
     forces = distances_to_forces(gradients_between_atoms, per_dimension_distances)
     return euclidean_distances, forces
 
@@ -38,7 +38,6 @@ def compute_potential_energy(euclidean_distances):
         potentials_between_atoms     = potential_return(euclidean_distances, 1, 1)
         return np.sum(np.triu(potentials_between_atoms,1))
 
-#@numba.jit()
 def compute_kinetic_energy(m, v):
         return 0.5*np.sum(np.dot(m, v**2))
 
