@@ -78,21 +78,26 @@ def simulate(coordinates, m = 1, nsteps = 10000, dt = 0.001,):
     results = {'trajectory':trajectory, 'potential_energies':potential_energies, 'kinetic_energies':kinetic_energies}
     return results
 
-positions = np.array([
-    [0.5391356726,0.1106588251,-0.4635601962], #atom1
-    [-0.5185079933,0.4850176090,0.0537084789], #atom2
-    [0.0793723207,-0.4956764341,0.5098517173], #atom3
-])
-start  = time.time()
-results = simulate(positions, nsteps=10000)
-print(f"Duration: {time.time()-start}")
+def initialize_positions():
 
-fig, ax = plt.subplots()
-ax.plot(range(10000), results['kinetic_energies'], label='kinetic')
-ax.plot(range(10000), results['potential_energies'], label='potential')
-ax.plot(range(10000), results['kinetic_energies'] + results['potential_energies'], label='total')
-ax.set(ylabel='Energy', xlabel='Timesteps')
-ax.legend()
-plt.show()
+    positions = np.array([
+        [0.5391356726,0.1106588251,-0.4635601962], #atom1
+        [-0.5185079933,0.4850176090,0.0537084789], #atom2
+        [0.0793723207,-0.4956764341,0.5098517173], #atom3
+    ])
+    return positions
 
-print()
+def run():
+    positions = initialize_positions()
+    start  = time.time()
+    results = simulate(positions, nsteps=10000)
+    print(f"Duration: {time.time()-start}")
+
+    fig, ax = plt.subplots()
+    ax.plot(range(10000), results['kinetic_energies'], label='kinetic')
+    ax.plot(range(10000), results['potential_energies'], label='potential')
+    ax.plot(range(10000), results['kinetic_energies'] + results['potential_energies'], label='total')
+    ax.set(ylabel='Energy', xlabel='Timesteps')
+    ax.legend()
+    plt.savefig('energy.jpg')
+    print(results['trajectory'][-1])
