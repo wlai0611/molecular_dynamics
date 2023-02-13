@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-
+import functions
 
 def interatomic_per_dimension_distances(coordinates):
     rows,columns = coordinates.shape
@@ -79,7 +79,6 @@ def simulate(coordinates, m = 1, nsteps = 10000, dt = 0.001,):
     return results
 
 def initialize_positions():
-
     positions = np.array([
         [0.5391356726,0.1106588251,-0.4635601962], #atom1
         [-0.5185079933,0.4850176090,0.0537084789], #atom2
@@ -100,4 +99,5 @@ def run():
     ax.set(ylabel='Energy', xlabel='Timesteps')
     ax.legend()
     plt.savefig('energy.jpg')
-    print(results['trajectory'][-1])
+    functions.write_trajectory(results['trajectory'])
+run()
