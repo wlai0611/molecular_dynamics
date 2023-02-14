@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import functions
+import periodic_boundary_conditions
 
 def interatomic_per_dimension_distances(coordinates):
     rows,columns = coordinates.shape
@@ -41,7 +42,7 @@ def compute_potential_energy(euclidean_distances):
 def compute_kinetic_energy(m, v):
         return 0.5*np.sum(np.dot(m, v**2))
 
-def simulate(coordinates, m = 1, nsteps = 10000, dt = 0.001,):
+def simulate(images, m = 1, nsteps = 10000, dt = 0.001,):
     '''
     User Inputs Atom Coordinates -> 
     Calculate Interatomic Forces -> Update Atom Velocities -> Update Atom Coordinates -> 
@@ -49,30 +50,28 @@ def simulate(coordinates, m = 1, nsteps = 10000, dt = 0.001,):
     Update Interatomic Forces    -> Update Atom Velocities -> Update Atom Coordinates -> ...
     Function Outputs Log At Each Timestep of 1) System-Level Energies and 2) Atom-Level Coordinates
     '''
-
-    natoms,ndimensions  = coordinates.shape
-    x  = coordinates.astype(float)
+    nimages,natoms,ndimensions = images.shape
     v  = np.zeros(shape=(natoms,ndimensions))
     m  = np.ones(natoms) * m
-    trajectory = np.zeros(shape=(nsteps,natoms,ndimensions))
+    trajectory = np.zeros(shape=(nsteps,nimages*natoms,ndimensions))
     potential_energies = np.zeros(shape=nsteps)
     kinetic_energies   = np.zeros(shape=nsteps)
 
-    distances, F  = get_interatomic_forces(coordinates = x)
+    distances, F  = get_interatomic_forces(coordinates = images[0])
     for step in range(nsteps):
         a  =  F/m
         dv =  a * dt/2
         v  += dv
 
         dx =  v*dt
-        x  += dx
+        images += dx
 
-        distances, F  =  get_interatomic_forces(coordinates = x)
+        distances, F  =  get_interatomic_forces(coordinates = images[0])
         a  =  F/m
         dv =  a * dt/2
         v  += dv
 
-        trajectory[step] = x
+        trajectory[step] = images.reshape(nimages*natoms, ndimensions)
         potential_energies[step] = compute_potential_energy(distances)
         kinetic_energies[step]   = compute_kinetic_energy(m, v)
     results = {'trajectory':trajectory, 'potential_energies':potential_energies, 'kinetic_energies':kinetic_energies}
@@ -89,7 +88,8 @@ def initialize_positions():
 def run():
     positions = initialize_positions()
     start  = time.time()
-    results = simulate(positions, nsteps=10000)
+    images = periodic_boundary_conditions.get_image_particles(positions)
+    results = simulate(images, nsteps=10000)
     print(f"Duration: {time.time()-start}")
 
     fig, ax = plt.subplots()
