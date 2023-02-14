@@ -1,4 +1,4 @@
 .ipynb_checkpoints/
 
 000_simplest_md.ipynb
-trajectory.*
+trajectory[0-9]+.xyz
